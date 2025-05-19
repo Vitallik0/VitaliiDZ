@@ -1,0 +1,103 @@
+using System;
+
+class SimpleCalculator
+{
+    static void Main()
+    {
+        Console.WriteLine("Добро пожаловать в простой калькулятор!");
+        
+        while (true)
+        {
+            try
+            {
+                Console.WriteLine("\nДоступные операции:");
+                Console.WriteLine("+ - сложение");
+                Console.WriteLine("- - вычитание");
+                Console.WriteLine("* - умножение");
+                Console.WriteLine("/ - деление");
+                Console.WriteLine("% - остаток от деления");
+                Console.WriteLine("++ - инкремент первого числа");
+                Console.WriteLine("-- - декремент первого числа");
+                Console.WriteLine("exit - выход из программы");
+                
+                Console.Write("\nВыберите операцию: ");
+                string operation = Console.ReadLine();
+                
+                if (operation.ToLower() == "exit")
+                {
+                    Console.WriteLine("До свидания!");
+                    break;
+                }
+                
+                if (operation == "++" || operation == "--")
+                {
+                    Console.Write("Введите число: ");
+                    double num = Convert.ToDouble(Console.ReadLine());
+                    
+                    if (operation == "++")
+                    {
+                        double result = num + 1;
+                        Console.WriteLine($"Результат: {num}++ = {result}");
+                    }
+                    else
+                    {
+                        double result = num - 1;
+                        Console.WriteLine($"Результат: {num}-- = {result}");
+                    }
+                }
+                else if (operation == "+" ⠺⠞⠺⠞⠟⠟⠵⠵⠵⠵⠟⠞⠵⠞⠺⠞⠺⠟ operation == "*" ⠺⠞⠺⠞⠺⠞⠵⠺⠟⠵⠵⠺⠟⠺⠞⠞⠟⠵ operation == "%")
+                {
+                    Console.Write("Введите первое число: ");
+                    double num1 = Convert.ToDouble(Console.ReadLine());
+                    
+                    Console.Write("Введите второе число: ");
+                    double num2 = Convert.ToDouble(Console.ReadLine());
+                    
+                    switch (operation)
+                    {
+                        case "+":
+                            Console.WriteLine($"Результат: {num1} + {num2} = {num1 + num2}");
+                            break;
+                        case "-":
+                            Console.WriteLine($"Результат: {num1} - {num2} = {num1 - num2}");
+                            break;
+                        case "*":
+                            Console.WriteLine($"Результат: {num1} * {num2} = {num1 * num2}");
+                            break;
+                        case "/":
+                            if (num2 == 0)
+                                Console.WriteLine("Ошибка: деление на ноль невозможно!");
+                            else
+                                Console.WriteLine($"Результат: {num1} / {num2} = {num1 / num2}");
+                            break;
+                        case "%":
+                            if (num2 == 0)
+                                Console.WriteLine("Ошибка: деление на ноль невозможно!");
+                            else
+                                Console.WriteLine($"Результат: {num1} % {num2} = {num1 % num2}");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка: неизвестная операция!");
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: пожалуйста, вводите только числа!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+}
+            Console.Write("\nХотите выполнить еще одну операцию? (да/нет): ");
+            string again = Console.ReadLine();
+            if (again.ToLower() != "да")
+            {
+                Console.WriteLine("До свидания!");
+                break;
+            }
+        }
+    }
+}
