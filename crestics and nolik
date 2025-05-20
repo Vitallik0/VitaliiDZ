@@ -1,0 +1,88 @@
+using System;
+
+class TicTacToe
+{
+    static char[] board = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+    static int currentPlayer = 1; // 1 — X, 2 — O
+
+    static void Main()
+    {
+        int choice;
+        bool validInput;
+
+        while (true)
+        {
+            Console.Clear();
+            DrawBoard();
+
+            Console.Write($"Игрок {currentPlayer} ({(currentPlayer == 1 ? 'X' : 'O')}), введите номер ячейки: ");
+            validInput = int.TryParse(Console.ReadLine(), out choice)
+                         && choice >= 1 && choice <= 9
+                         && board[choice - 1] != 'X' && board[choice - 1] != 'O';
+
+            if (!validInput)
+            {
+                Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                Console.ReadKey();
+                continue;
+            }
+
+            board[choice - 1] = (currentPlayer == 1) ? 'X' : 'O';
+
+            if (CheckForWin())
+            {
+                Console.Clear();
+                DrawBoard();
+                Console.WriteLine($"Победил игрок {currentPlayer}!");
+                break;
+            }
+
+            if (CheckForDraw())
+            {
+                Console.Clear();
+                DrawBoard();
+                Console.WriteLine("Ничья!");
+                break;
+            }
+
+            currentPlayer = (currentPlayer == 1) ? 2 : 1;
+        }
+    }
+
+    static void DrawBoard()
+    {
+        Console.WriteLine();
+        Console.WriteLine($" {board[0]} | {board[1]} | {board[2]} ");
+        Console.WriteLine("---+---+---");
+        Console.WriteLine($" {board[3]} | {board[4]} | {board[5]} ");
+        Console.WriteLine("---+---+---");
+        Console.WriteLine($" {board[6]} | {board[7]} | {board[8]} ");
+        Console.WriteLine();
+    }
+
+    static bool CheckForWin()
+    {
+        int[,] winCombos = new int[,]
+        {
+            {0,1,2}, {3,4,5}, {6,7,8}, // строки
+            {0,3,6}, {1,4,7}, {2,5,8}, // столбцы
+            {0,4,8}, {2,4,6}           // диагонали
+        };
+
+        for (int i = 0; i < winCombos.GetLength(0); i++)
+        {
+            if (board[winCombos[i, 0]] == board[winCombos[i, 1]] &&
+                board[winCombos[i, 1]] == board[winCombos[i, 2]])
+                return true;
+        }
+        return false;
+    }
+
+    static bool CheckForDraw()
+    {
+        foreach (char c in board)
+            if (c != 'X' && c != 'O')
+                return false;
+        return true;
+    }
+}
