@@ -1,0 +1,369 @@
+using System;
+using System.IO;
+using System.Linq;
+
+class ConsoleFileExplorer
+{
+    static void Main()
+    {
+        Console.WriteLine("=== Консольный файловый проводник ===");
+
+        while (true)
+        {
+            var drives = DriveInfo.GetDrives()
+                .Where(d => d.IsReady)
+                .ToArray();
+
+            Console.WriteLine("\nДоступные диски:");
+            for (int i = 0; i < drives.Length; i++)
+            {
+                Console.WriteLine($"{i + 1}. {drives[i].Name} - {drives[i].DriveType} - {FormatBytes(drives[i].AvailableFreeSpace)} свободно из {FormatBytes(drives[i].TotalSize)}");
+            }
+            Console.WriteLine("0. Выход");
+
+            Console.Write("Выберите диск для работы: ");
+            if (!int.TryParse(Console.ReadLine(), out int driveChoice) || driveChoice < 0 || driveChoice > drives.Length)
+            {
+                Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                continue;
+            }
+
+            if (driveChoice == 0)
+            {
+                Console.WriteLine("Выход из приложения...");
+                break;
+            }
+
+            var selectedDrive = drives[driveChoice - 1];
+            ExploreDrive(selectedDrive.RootDirectory.FullName);
+        }
+    }
+
+    static void ExploreDrive(string rootPath)
+    {
+        string currentPath = rootPath;
+
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine($"Текущий путь: {currentPath}");
+            Console.WriteLine();
+
+            // Отобразить содержимое каталога
+            string[] directories;
+            string[] files;
+            try
+            {
+                directories = Directory.GetDirectories(currentPath);
+                files = Directory.GetFiles(currentPath);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Console.WriteLine("Нет доступа к этому каталогу.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка доступа: {ex.Message}");
+                return;
+            }
+
+            Console.WriteLine("Папки:");
+            for (int i = 0; i < directories.Length; i++)
+            {
+                Console.WriteLine($"  D{i + 1}. {Path.GetFileName(directories[i])}");
+            }
+
+            Console.WriteLine("Файлы:");
+            for (int i = 0; i < files.Length; i++)
+            {
+                Console.WriteLine($"  F{i + 1}. {Path.GetFileName(files[i])}");
+            }
+
+            Console.WriteLine("\nКоманды:");
+            Console.WriteLine("  cd D# - войти в папку (например, cd D2)");
+            Console.WriteLine("  up - подняться на уровень выше");
+            Console.WriteLine("  open F# - открыть текстовый файл (например, open F3)");
+            Console.WriteLine("  mkdir - создать новую папку");
+            Console.WriteLine("  mkfile - создать новый текстовый файл");
+            Console.WriteLine("  del D# / del F# - удалить папку или файл");
+            Console.WriteLine("  exit - выйти в выбор диска");
+
+            Console.Write("\nВведите команду: ");
+            string input = Console.ReadLine().Trim();
+
+            if (string.IsNullOrEmpty(input))
+                continue;
+
+            var parts = input.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            string command = parts[0].ToLower();
+
+            if (command == "exit")
+            {
+                break;
+            }
+            else if (command == "up")
+            {
+                if (currentPath == Path.GetPathRoot(currentPath))
+                {
+                    Console.WriteLine("Вы уже в корне диска.");
+                    Pause();
+                }
+                else
+                {
+                    currentPath = Directory.GetParent(currentPath).FullName;
+                }
+            }
+            else if (command == "cd" && parts.Length == 2)
+            {
+                string arg = parts[1].ToUpper();
+                if (arg.StartsWith("D"))
+                {
+                    if (int.TryParse(arg.Substring(1), out int dirIndex) && dirIndex >= 1 && dirIndex <= directories.Length)
+                    {
+                        currentPath = directories[dirIndex - 1];
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверный индекс папки.");
+                        Pause();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Неверный формат команды cd.");
+                    Pause();
+                }
+            }
+            else if (command == "open" && parts.Length == 2)
+            {
+                string arg = parts[1].ToUpper();
+                if (arg.StartsWith("F"))
+                {
+                    if (int.TryParse(arg.Substring(1), out int fileIndex) && fileIndex >= 1 && fileIndex <= files.Length)
+                    {
+                        OpenTextFile(files[fileIndex - 1]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверный индекс файла.");
+                        Pause();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Неверный формат команды open.");
+                    Pause();
+                }
+            }
+            else if (command == "mkdir")
+            {
+                CreateDirectory(currentPath);
+            }
+            else if (command == "mkfile")
+            {
+                CreateTextFile(currentPath);
+            }
+            else if (command == "del" && parts.Length == 2)
+            {
+                string arg = parts[1].ToUpper();
+                if (arg.StartsWith("D"))
+                {
+                    if (int.TryParse(arg.Substring(1), out int dirIndex) && dirIndex >= 1 && dirIndex <= directories.Length)
+                    {
+                        DeleteDirectory(directories[dirIndex - 1]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверный индекс папки.");
+                        Pause();
+                    }
+                }
+                else if (arg.StartsWith("F"))
+                {
+                    if (int.TryParse(arg.Substring(1), out int fileIndex) && fileIndex >= 1 && fileIndex <= files.Length)
+                    {
+                        DeleteFile(files[fileIndex - 1]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверный индекс файла.");
+                        Pause();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Неверный формат команды del.");
+                    Pause();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неизвестная команда.");
+                Pause();
+            }
+        }
+    }
+
+    static void OpenTextFile(string path)
+    {
+        Console.Clear();
+        Console.WriteLine($"=== Просмотр файла: {Path.GetFileName(path)} ===\n");
+        try
+        {
+            string content = File.ReadAllText(path);
+            Console.WriteLine(content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при чтении файла: {ex.Message}");
+        }
+        Console.WriteLine("\nНажмите любую клавишу для возврата...");
+        Console.ReadKey();
+    }
+
+    static void CreateDirectory(string currentPath)
+    {
+        Console.Write("Введите имя новой папки: ");
+        string dirName = Console.ReadLine().Trim();
+
+        if (string.IsNullOrEmpty(dirName))
+        {
+            Console.WriteLine("Имя папки не может быть пустым.");
+            Pause();
+            return;
+        }
+
+        string newDirPath = Path.Combine(currentPath, dirName);
+
+        if (Directory.Exists(newDirPath))
+        {
+            Console.WriteLine("Папка с таким именем уже существует.");
+            Pause();
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(newDirPath);
+            Console.WriteLine("Папка успешно создана.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при создании папки: {ex.Message}");
+        }
+        Pause();
+    }
+
+    static void CreateTextFile(string currentPath)
+    {
+        Console.Write("Введите имя нового текстового файла (с расширением .txt): ");
+        string fileName = Console.ReadLine().Trim();
+
+        if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".txt"))
+        {
+            Console.WriteLine("Имя файла должно быть непустым и иметь расширение .txt");
+            Pause();
+            return;
+        }
+
+        string newFilePath = Path.Combine(currentPath, fileName);
+
+        if (File.Exists(newFilePath))
+        {
+            Console.WriteLine("Файл с таким именем уже существует.");
+            Pause();
+            return;
+        }
+
+        Console.WriteLine("Введите содержимое файла. Для окончания ввода введите пустую строку:");
+
+        string line;
+        var lines = new System.Collections.Generic.List<string>();
+        while (true)
+        {
+            line = Console.ReadLine();
+            if (string.IsNullOrEmpty(line))
+                break;
+            lines.Add(line);
+        }
+
+        try
+        {
+            File.WriteAllLines(newFilePath, lines);
+            Console.WriteLine("Файл успешно создан.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при создании файла: {ex.Message}");
+        }
+        Pause();
+    }
+
+    static void DeleteFile(string filePath)
+    {
+        Console.Write($"Подтвердите удаление файла '{Path.GetFileName(filePath)}' (y/n): ");
+        var key = Console.ReadKey();
+        Console.WriteLine();
+        if (key.KeyChar == 'y' || key.KeyChar == 'Y')
+        {
+            try
+            {
+                File.Delete(filePath);
+                Console.WriteLine("Файл удалён.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при удалении файла: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Удаление отменено.");
+        }
+        Pause();
+    }
+
+    static void DeleteDirectory(string dirPath)
+    {
+        Console.Write($"Подтвердите удаление папки '{Path.GetFileName(dirPath)}' и всего её содержимого (y/n): ");
+        var key = Console.ReadKey();
+        Console.WriteLine();
+        if (key.KeyChar == 'y' || key.KeyChar == 'Y')
+        {
+            try
+            {
+                Directory.Delete(dirPath, true);
+                Console.WriteLine("Папка удалена.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при удалении папки: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Удаление отменено.");
+        }
+        Pause();
+    }
+
+    static void Pause()
+    {
+        Console.WriteLine("Нажмите любую клавишу для продолжения...");
+        Console.ReadKey();
+    }
+
+    static string FormatBytes(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
