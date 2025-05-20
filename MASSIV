@@ -1,0 +1,63 @@
+
+ВОПРОС 1:
+Трехмерный массив: 3 * 2 * 3 = 18
+ответ: 18
+
+ВОПРОС 2:
+Данный массив — двумерный
+ответ: 2
+
+ВОПРОС 3:
+Здесь мы пытаемся обратиться к элементу nums. Однако массив nums имеет длину 3. Обращение к nums вызовет исключение IndexOutOfRangeException.
+ответ: программа выбросит исключение.
+
+ВОПРОС 4:
+Число 7 находится во вложенном массиве nums под индексом 1. Значит, обращение будет:
+nums[2][1]
+ответ: nums
+
+ПРАКТИЧЕСКОЕ УПРАЖНЕНИЕ:
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int[,,] mas = { 
+            { { 1, 2 }, { 3, 4 } }, 
+            { { 4, 5 }, { 6, 7 } }, 
+            { { 7, 8 }, { 9, 10 } }, 
+            { { 10, 11 }, { 12, 13 } } 
+        };
+
+        Console.Write("{");
+        int dim0 = mas.GetLength(0);
+        int dim1 = mas.GetLength(1);
+        int dim2 = mas.GetLength(2);
+
+        for (int i = 0; i < dim0; i++)
+        {
+            Console.Write("{");
+            for (int j = 0; j < dim1; j++)
+            {
+                Console.Write("{");
+                for (int k = 0; k < dim2; k++)
+                {
+                    Console.Write(mas[i, j, k]);
+                    if (k < dim2 - 1)
+                        Console.Write(" , ");
+                }
+                Console.Write("}");
+                if (j < dim1 - 1)
+                    Console.Write(" , ");
+            }
+            Console.Write("}");
+            if (i < dim0 - 1)
+                Console.Write(" , ");
+        }
+        Console.WriteLine("}");
+    }
+}
+вЫВОД:
+{{{1 , 2} , {3 , 4}} , {{4 , 5} , {6 , 7}} , {{7 , 8} , {9 , 10}} , {{10 , 11} , {12 , 13}}}
+
